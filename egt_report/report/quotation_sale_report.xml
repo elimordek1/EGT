@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_egt_quotation_sale" model="report.paperformat">
+        <field name="name">EGT Sale Quotation Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- Register the sale quotation report -->
+    <record id="action_report_quotation_sale" model="ir.actions.report">
+        <field name="name">EGT Sale Report</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">egt_report.report_quotation_sale</field>
+        <field name="report_file">egt_report.report_quotation_sale</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="egt_report.paperformat_egt_quotation_sale"/>
+    </record>
+
+    <!-- Template for sale quotation -->
+    <template id="report_quotation_sale">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page" style="padding: 0; margin: 0; font-family: Arial, sans-serif; font-size: 9pt;">
+                <!-- Header with gradient and logo -->
+                <div style="position: relative; height: 100px; margin-bottom: 30px;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 100px; overflow: hidden;">
+                        <div style="background: linear-gradient(to right, #D20000, #ffffff); height: 10px; width: 100%;"></div>
+                    </div>
+                    <div style="position: relative; z-index: 1; color: #D20000; font-weight: bold; font-style: italic; font-size: 14pt; padding-top: 25px; padding-left: 20px;">
+                        Euro Games Technology Georgia LTD
+                    </div>
+                    <div style="position: absolute; top: 5px; right: 20px; z-index: 2; text-align: center;">
+                        <img t-if="doc.company_id.logo" t-att-src="'data:image/png;base64,' + str(doc.company_id.logo, 'utf-8')" style="max-height: 60px; margin-bottom: 10px;"/>
+                        <div style="color: #D20000; font-weight: bold; font-size: 16pt; margin-top: 5px; padding-bottom: 15px;">
+                            QUOTATION SALE
+                        </div>
+                    </div>
+                </div>
+                    
+                    <!-- Date Information - Right Aligned -->
+                    <table style="width: 100%; margin-bottom: 10px;">
+                        <tr>
+                            <td style="width: 70%;"></td>
+                            <td style="width: 30%;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="width: 30%; text-align: right; padding-right: 5px;">Date</td>
+                                        <td style="width: 70%; border: 1px solid #000; text-align: center; padding: 3px;">January 15, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 30%; text-align: right; padding-right: 5px;">Valid Until</td>
+                                        <td style="width: 70%; border: 1px solid #000; text-align: center; padding: 3px;">January 27, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 30%; text-align: right; padding-right: 5px;">Currency</td>
+                                        <td style="width: 70%; border: 1px solid #000; text-align: center; padding: 3px;">EUR</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Buyer Info with BOLD text -->
+                    <table style="width: 400px; border-collapse: collapse; margin-bottom: 10px;">
+                        <tr>
+                            <td colspan="2" style="background-color: #D20000; color: white; font-weight: bold; padding: 3px;">Buyer:</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 35%; border: 1px solid #000; padding: 3px;">Gaming Organizer:</td>
+                            <td style="width: 65%; border: 1px solid #000; padding: 3px; font-weight: bold;">Stream for win</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 3px;">Location:</td>
+                            <td style="border: 1px solid #000; padding: 3px; font-weight: bold;">Batumi, Georgia</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 3px;">Company:</td>
+                            <td style="border: 1px solid #000; padding: 3px; font-weight: bold;">LLC Streamforwin</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 3px;">Contact person:</td>
+                            <td style="border: 1px solid #000; padding: 3px; font-weight: bold;">Nino Kapanadze</td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Main Table - DYNAMIC FIELDS -->
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
+                        <!-- Main Header Row -->
+                        <tr>
+                            <td style="width: 8%; background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: center;">Qty.</td>
+                            <td style="width: 30%; background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: left;">Description</td>
+                            <td style="width: 12%; background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: center;">Unit Price</td>
+                            <td style="width: 10%; background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: center;">VAT 18%</td>
+                            <td style="width: 13%; background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: center;">Unit Price + VAT</td>
+                            <td style="width: 12%; background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: center;">Amount</td>
+                            
+                            <!-- Get unique product names from order lines -->
+                            <t t-set="unique_products" t-value="set([line.product_template_id.name for line in doc.order_line])"/>
+                            
+                            <!-- Each unique product gets a column -->
+                            <t t-foreach="unique_products" t-as="product">
+                                <td style="background-color: #D20000; color: white; border: 1px solid white; padding: 3px; text-align: center;">
+                                    <t t-esc="product"/>
+                                </td>
+                            </t>
+                        </tr>
+                        
+                        <!-- Dynamic Product Rows -->
+                        <t t-set="total_amount" t-value="0"/>
+                        <t t-set="line_number" t-value="1"/>
+                        <t t-foreach="doc.order_line" t-as="line">
+                            <tr>
+                                <td style="border: 1px solid #D20000; padding: 3px; text-align: center;">
+                                    <t t-esc="line_number"/>
+                                    <t t-set="line_number" t-value="line_number + 1"/>
+                                </td>
+                                <td style="border: 1px solid #D20000; padding: 3px;">
+                                    <t t-esc="line.product_template_id.name"/>
+                                </td>
+                                <td style="border: 1px solid #D20000; padding: 3px; text-align: right;">
+                                    <t t-esc="'{:,.2f}'.format(line.price_unit)"/>
+                                </td>
+                                <td style="border: 1px solid #D20000; padding: 3px; text-align: center;">
+                                    18%
+                                </td>
+                                <td style="border: 1px solid #D20000; padding: 3px; text-align: right;">
+                                    <t t-esc="'{:,.2f}'.format(line.price_unit * 1.18)"/>
+                                </td>
+                                <td style="border: 1px solid #D20000; padding: 3px; text-align: right;">
+                                    <t t-esc="'{:,.2f}'.format(line.price_subtotal)"/>
+                                    <t t-set="total_amount" t-value="total_amount + line.price_subtotal"/>
+                                </td>
+                                
+                                <!-- Product columns with quantities -->
+                                <t t-foreach="unique_products" t-as="product">
+                                    <td style="border: 1px solid #D20000; padding: 3px; text-align: center;">
+                                        <t t-if="line.product_template_id.name == product">
+                                            <t t-esc="int(line.product_uom_qty)"/>
+                                        </t>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                    </table>
+                    
+                    <!-- Total Row - DYNAMIC -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 0;">
+                        <tr>
+                            <td style="width: 60%; text-align: right; font-weight: bold; padding: 3px;">TOTAL:</td>
+                            <td style="width: 10%;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="width: 20%; text-align: center; border: 1px solid #D20000; padding: 3px;">
+                                            <t t-esc="doc.currency_id.symbol"/>
+                                        </td>
+                                        <td style="width: 80%; text-align: right; border: 1px solid #D20000; padding: 3px;">
+                                            <t t-esc="'{:,.2f}'.format(total_amount)"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="width: 30%;"></td>
+                        </tr>
+                    </table>
+                    
+                    <!-- General Terms Table - STATIC PLACEHOLDER -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 9pt;">
+                        <tr>
+                            <td style="background-color: #D20000; color: white; font-weight: bold; padding: 3px;">General Terms of Sale:</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px; font-weight: bold;">Terms of Payment:</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px;">* 40% (66,080.00 EUR) should be paid in advance within 3 days after signing the Sale Agreement;<br/>
+                            * Residual Balance of 99,120.00 EUR should be paid in 4 equal monthly installments. Amount of each monthly payment is 24,780.00 EUR.<br/>
+                            The first payment is due not later than 05th of the month, following the receipt of the Goods.</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px; font-weight: bold;">Terms of Delivery:</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px;">EGT Georgia Warehouse in Tbilisi within 12-14 weeks from receipt of down payment</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px; font-weight: bold;">Installation:</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px;">Installed by EGT technicians on location.</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px; font-weight: bold;">Note:</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #D20000; padding: 3px;">EGT Georgia remains owner until full payment is received</td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Confirmation Text -->
+                    <div style="text-align: center; margin-top: 15px; font-style: italic; font-size: 9pt;">
+                        Please confirm your acceptance of this quote by signing this document
+                    </div>
+                    
+                    <!-- Signature Fields -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 9pt;">
+                        <tr>
+                            <td style="width: 25%; text-align: center;">
+                                <div style="margin-bottom: 5px;">Signature</div>
+                                <div style="border: 1px solid #000; height: 15px;"></div>
+                            </td>
+                            <td style="width: 50%; text-align: center;">
+                                <div style="margin-bottom: 5px;">Name &amp; Position</div>
+                                <div style="border: 1px solid #000; height: 15px;"></div>
+                            </td>
+                            <td style="width: 25%; text-align: center;">
+                                <div style="margin-bottom: 5px;">Date</div>
+                                <div style="border: 1px solid #000; height: 15px;"></div>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Thank You Text -->
+                    <div style="text-align: center; margin-top: 15px; font-style: italic; font-size: 9pt;">
+                        Thank you for your business!
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
