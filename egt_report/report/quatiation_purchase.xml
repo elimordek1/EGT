@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_egt_order" model="report.paperformat">
+        <field name="name">EGT Order Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_order" model="ir.actions.report">
+        <field name="name">EGT Purchase</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">egt_report.report_order</field>
+        <field name="report_file">egt_report.report_order</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="egt_report.paperformat_egt_order"/>
+    </record>
+
+    <template id="report_order">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <meta charset="utf-8"/>
+                    <div class="page" style="padding: 0; margin: 0; font-family: Arial, sans-serif; font-size: 10pt;">
+                        <!-- Header with no outside borders -->
+                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 0; border: 1px solid white;">
+                            <tr>
+                                <td style="width: 15%; padding: 5px 0 5px 0; border: 1px solid white; vertical-align: top;">
+                                    <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)" style="width: 80px; border: none;" />
+                                </td>
+                                <td style="width: 85%; border: 1px solid white; padding: 0; vertical-align: top;">
+                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid white;">
+                                        <tr>
+                                            <td style="text-align: right; padding: 0; border: 1px solid white;">
+                                                <table style="border-collapse: collapse; margin-left: auto; border: 1px solid white;">
+                                                    <tr>
+                                                        <td style="text-align: right; padding: 5px 5px 5px 0; border: 1px solid white; vertical-align: middle;">
+                                                            <span style="font-size: 9pt;">+995 32 24 07 365</span>
+                                                        </td>
+                                                        <td style="background-color: #D20000; width: 25px; height: 25px; text-align: center; vertical-align: middle; padding: 0; border: 1px solid white;">
+                                                            <span style="color: white; font-size: 14px;">☎</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="text-align: right; padding: 5px 5px 5px 0; border: 1px solid white; vertical-align: middle;">
+                                                            <a href="mailto:sales.georgia@egt-bg.com" style="color: blue; text-decoration: none; font-size: 9pt;">sales.georgia@egt-bg.com</a>
+                                                        </td>
+                                                        <td style="background-color: #D20000; width: 25px; height: 25px; text-align: center; vertical-align: middle; padding: 0; border: 1px solid white;">
+                                                            <span style="color: white; font-size: 14px;">✉</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="text-align: right; padding: 5px 5px 5px 0; border: 1px solid white; vertical-align: middle;">
+                                                            <a href="http://www.egt-bg.com" style="color: blue; text-decoration: none; font-size: 9pt;">www.egt-bg.com</a>
+                                                        </td>
+                                                        <td style="background-color: #D20000; width: 25px; height: 25px; text-align: center; vertical-align: middle; padding: 0; border: 1px solid white;">
+                                                            <span style="color: white; font-size: 14px;">🌐</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <div style="width: 100%; height: 1px; background-color: #D20000; margin-top: 5px; margin-bottom: 5px;"></div>
+                        
+                        <!-- Company name below the line -->
+                        <div style="color: #D20000; font-style: italic; font-weight: bold; font-size: 12pt; margin-bottom: 20px;">
+                            "Euro Games Technology Georgia" Ltd.
+                        </div>
+
+                        <!-- Order Number -->
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="color: #D20000; font-weight: bold; font-size: 14pt;">ORDER # <span t-field="doc.name"/></div>
+                        </div>
+
+                        <!-- Date - no boxes, simple text -->
+                        <div style="text-align: right; margin-bottom: 20px;">
+                            <div style="display: inline-block;">
+                                <span style="padding-right: 5px;">Date</span>
+                                <span>
+                                    <t t-if="doc.date_order">
+                                        <t t-esc="doc.date_order.strftime('%B %d, %Y')"/>
+                                    </t>
+                                    <t t-else="">March 28, 2025</t>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Info Table - No internal borders -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <tr>
+                                <td colspan="2" style="background-color: #D20000; color: white; font-weight: bold; padding: 3px 10px; border: 1px solid #D20000;">Customer:</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 35%; padding: 5px; border: 1px solid #000;">Gaming Organizer:</td>
+                                <td style="width: 65%; padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.partner_id.name"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #000;">Location:</td>
+                                <td style="padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.partner_id.city + ', ' + doc.partner_id.country_id.name if doc.partner_id.city and doc.partner_id.country_id else ''"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #000;">Delivery Address:</td>
+                                <td style="padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.partner_shipping_id.street"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Order Purpose Text -->
+                        <div style="text-align: center; font-style: italic; margin-bottom: 15px;">
+                            For the needs of "Euro Games Technology Georgia" we want to order:
+                        </div>
+
+                        <!-- Prepare MultiGames data -->
+                        <t t-set="multigame_products" t-value="[]"/>
+                        <t t-foreach="doc.order_line" t-as="line">
+                            <t t-if="line.product_id.categ_id.name == 'MultiGames'">
+                                <t t-set="multigame_products" t-value="multigame_products + [line.product_template_id.name]"/>
+                            </t>
+                        </t>
+                        <t t-set="unique_multigame_products" t-value="set(multigame_products)"/>
+
+                        <!-- Products Table - Only show multigame columns if they exist -->
+                        <div style="margin-bottom: 20px;">
+                            <!-- If we have multigames, show the table with multigame columns -->
+                            <t t-if="unique_multigame_products">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #ffffff; width: 5%;">Qty</td>
+                                        <td style="background-color: #D20000; color: white; font-weight: bold; padding: 5px; border: 1px solid #ffffff; width: 30%;">Description</td>
+                                        <td colspan="7" style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #ffffff; width: 65%;">Multigames</td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <t t-foreach="unique_multigame_products" t-as="product">
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 3px; font-size: 9pt;">
+                                                <t t-esc="product"/>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                    
+                                    <!-- Product rows -->
+                                    <t t-foreach="doc.order_line" t-as="line">
+                                        <t t-if="line.product_id.categ_id.name != 'MultiGames'">
+                                            <tr>
+                                                <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">
+                                                    <t t-esc="int(line.product_uom_qty)"/>
+                                                </td>
+                                                <td style="border: 1px solid #D20000; padding: 5px;">
+                                                    <t t-esc="line.product_template_id.name"/>
+                                                </td>
+                                                <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                                    <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                                                </t>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                    
+                                    <!-- If no regular products found, show placeholders -->
+                                    <t t-if="not doc.order_line or all(line.product_id.categ_id.name == 'MultiGames' for line in doc.order_line)">
+                                        <!-- First row - static values for demo -->
+                                        <tr>
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">3</td>
+                                            <td style="border: 1px solid #D20000; padding: 5px;">G 27-27 ST with LCD Topper 27"</td>
+                                            <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                                <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                                            </t>
+                                        </tr>
+                                        
+                                        <!-- Second row -->
+                                        <tr>
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">3</td>
+                                            <td style="border: 1px solid #D20000; padding: 5px;">PTM bracket</td>
+                                            <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                                <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                    
+                                    <!-- MultiGames quantities row -->
+                                    <tr>
+                                        <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                                        <td style="border: 1px solid #D20000; padding: 5px;"></td>
+                                        <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">
+                                                <t t-set="product_qty" t-value="0"/>
+                                                <t t-foreach="doc.order_line" t-as="line">
+                                                    <t t-if="line.product_template_id.name == mg_product and line.product_id.categ_id.name == 'MultiGames'">
+                                                        <t t-set="product_qty" t-value="product_qty + line.product_uom_qty"/>
+                                                    </t>
+                                                </t>
+                                                <t t-if="product_qty > 0">
+                                                    <t t-esc="int(product_qty)"/>
+                                                </t>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </table>
+                            </t>
+                            <!-- If no multigames, show the table without multigame columns -->
+                            <t t-else="">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #ffffff; width: 5%;">Qty</td>
+                                        <td style="background-color: #D20000; color: white; font-weight: bold; padding: 5px; border: 1px solid #ffffff; width: 95%;">Description</td>
+                                    </tr>
+                                    
+                                    <!-- Product rows -->
+                                    <t t-foreach="doc.order_line" t-as="line">
+                                        <tr>
+                                            <td style="border: 1px solid #D20000;
+                                                text-align: center; padding: 5px;">
+                                                <t t-esc="int(line.product_uom_qty)"/>
+                                            </td>
+                                            <td style="border: 1px solid #D20000; padding: 5px;">
+                                                <t t-esc="line.product_template_id.name"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    
+                                    <!-- If no products found, show placeholders -->
+                                    <t t-if="not doc.order_line">
+                                        <tr>
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">3</td>
+                                            <td style="border: 1px solid #D20000; padding: 5px;">G 27-27 ST with LCD Topper 27"</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">3</td>
+                                            <td style="border: 1px solid #D20000; padding: 5px;">PTM bracket</td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </t>
+                        </div>
+
+                        <!-- Georgian Requirements Section -->
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold;">Gaming machines should be produced according to Georgian Requirements (version GEO):</div>
+                            <div style="margin-top: 5px; margin-left: 15px;">
+                                * Bill Acceptor MEI<br/>
+                                * PTM Brackets Assist Systems (see attachment/s)<br/>
+                                * Georgian stickers GEL (5; 10; 20; 50; 100; 200)<br/>
+                                * All button labels must be in English<br/>
+                                * RTP for G 27-27 ST: ~ 95% (0.01; 0.02; 0.05; 0.10)
+                            </div>
+                        </div>
+
+                        <!-- Delivery Statement -->
+                        <div style="margin-bottom: 30px; text-align: center; font-weight: bold;">
+                            The Order should be executed and delivered to Tbilisi, Georgia not later than 
+                            <t t-if="doc.commitment_date">
+                                <t t-esc="doc.commitment_date.strftime('%B %d, %Y')"/>
+                            </t>
+                            <t t-else="">15 May, 2025</t>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="width: 100%; height: 1px; background-color: #9B9B9B; margin-top: 30px; margin-bottom: 8px;"></div>
+
+                        <div style="text-align: center; font-size: 9pt;">
+                            15 George Saakadze II Lane, 0160 Tbilisi, Georgia
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
