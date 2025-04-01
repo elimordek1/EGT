@@ -55,5 +55,19 @@
             </field>
         </field>
     </record>
-
+    
+    <record id="view_account_payment_form_inherit" model="ir.ui.view">
+        <field name="name">account.payment.form.inherit.credit.account</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_change_credit_account" 
+                        string="Change 1410 to 3120" 
+                        type="object" 
+                        class="oe_highlight" 
+                        help="Change all move lines with account 1410 to account 3120 on this payment and linked entries"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
