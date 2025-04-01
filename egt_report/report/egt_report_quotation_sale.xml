@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Paper Format Definition -->
+    <record id="paperformat_egt_quotation" model="report.paperformat">
+        <field name="name">EGT Quotation Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_quotation" model="ir.actions.report">
+        <field name="name">EGT Sales Quotation BG-KZT General</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">egt_report.report_quotation</field>
+        <field name="report_file">egt_report.report_quotation</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="egt_report.paperformat_egt_quotation"/>
+    </record>
+
+    <!-- Quotation Report Template -->
+    <template id="report_quotation">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <!-- Get unique multigame products -->
+                <t t-set="unique_multigame_products" t-value="[]"/>
+                <t t-foreach="doc.order_line" t-as="line">
+                    <t t-if="line.product_id.categ_id.name == 'Multi-Games G-series'">
+                        <t t-if="line.product_template_id.name not in unique_multigame_products">
+                            <t t-set="unique_multigame_products" t-value="unique_multigame_products + [line.product_template_id.name]"/>
+                        </t>
+                    </t>
+                </t>
+                
+                <div class="page" style="padding: 0; margin: 0; font-family: Arial, sans-serif; font-size: 9pt;">
+                    <head>
+                        <meta charset="utf-8"/>
+                    </head>
+                    
+                    <!-- Header with red bar and logo -->
+                    <div style="position: relative; margin-bottom: 20px;">
+                        <!-- Red top bar -->
+                        <div style="background-color: #D20000; height: 10px; width: 100%;"></div>
+                        
+                        <!-- Company name and logo container -->
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+                            <tr>
+                                <td style="width: 50%; text-align: left; vertical-align: middle;">
+                                    <div style="color: #D20000; font-style: italic; font-weight: bold; font-size: 14pt;">
+                                        Euro Games Technology Georgia LTD
+                                    </div>
+                                </td>
+                                <td style="width: 50%; text-align: right; vertical-align: top;">
+                                    <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)" style="max-height: 60px;"/>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Quotation Sale title -->
+                        <div style="text-align: right; margin-top: 5px;">
+                            <div style="color: #D20000; font-weight: bold; font-size: 16pt;">
+                                QUOTATION SALE
+                            </div>
+                            <div style="border-bottom: 1px solid #D20000; margin-top: 3px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Date Information - Right Aligned -->
+                    <table style="width: 100%; margin-bottom: 15px;">
+                        <tr>
+                            <td style="width: 65%;"></td>
+                            <td style="width: 35%;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="width: 30%; text-align: right; padding-right: 5px;">Date</td>
+                                        <td style="width: 70%; border: 1px solid #000; text-align: center; padding: 3px;">
+                                            <t t-if="doc.date_order">
+                                                <t t-esc="doc.date_order.strftime('%B %d, %Y')"/>
+                                            </t>
+                                            <t t-else="">March 29, 2025</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 30%; text-align: right; padding-right: 5px;">Valid Until</td>
+                                        <td style="width: 70%; border: 1px solid #000; text-align: center; padding: 3px;">
+                                            <t t-if="doc.validity_date">
+                                                <t t-esc="doc.validity_date"/>
+                                            </t>
+                                            <t t-else=""></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 30%; text-align: right; padding-right: 5px;">Currency</td>
+                                        <td style="width: 70%; border: 1px solid #000; text-align: center; padding: 3px;">
+                                            <t t-esc="doc.currency_id.name or 'EUR'"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Customer Info Table -->
+                    <table style="width: 350px; border-collapse: collapse; margin-bottom: 15px;">
+                        <tr>
+                            <td colspan="2" style="background-color: #D20000; color: white; font-weight: bold; padding: 3px; text-align: center;">Buyer:</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 35%; padding: 3px; border: 1px solid #000;">Gaming Organizer:</td>
+                            <td style="width: 65%; padding: 3px; border: 1px solid #000;">
+                                <t t-esc="doc.partner_id.name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; border: 1px solid #000;">Location:</td>
+                            <td style="padding: 3px; border: 1px solid #000;">
+                                <t t-esc="doc.partner_id.city + ', ' + doc.partner_id.country_id.name if doc.partner_id.city and doc.partner_id.country_id else ''"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; border: 1px solid #000;">Company:</td>
+                            <td style="padding: 3px; border: 1px solid #000;">
+                                <t t-esc="doc.partner_id.parent_id.name or ''"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; border: 1px solid #000;">Contact person:</td>
+                            <td style="padding: 3px; border: 1px solid #000;">
+                                <t t-esc="doc.user_id.name or ''"/>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Discount Table - New improved design -->
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 10px; border: 1px solid #D20000;">
+                        <tr>
+                            <td colspan="8" style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border-bottom: 1px solid #D20000;">
+                                Discount Schedule
+                            </td>
+                        </tr>
+                        <!-- QTY row -->
+                        <tr>
+                            <td style="width: 15%; border-right: 1px solid black; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px;">QTY</td>
+                            <td style="width: 12.14%; border-right: 1px solid black; text-align: center; padding: 5px;">0...5</td>
+                            <td style="width: 12.14%; border-right: 1px solid black; text-align: center; padding: 5px;">6...10</td>
+                            <td style="width: 12.14%; border-right: 1px solid black; text-align: center; padding: 5px;">11...20</td>
+                            <td style="width: 12.14%; border-right: 1px solid black; text-align: center; padding: 5px;">21...30</td>
+                            <td style="width: 12.14%; border-right: 1px solid black; text-align: center; padding: 5px;">31...50</td>
+                            <td style="width: 12.14%; border-right: 1px solid black; text-align: center; padding: 5px;">51...100</td>
+                            <td style="width: 12.14%; text-align: center; padding: 5px;">101...500</td>
+                        </tr>
+                        <!-- Discount % row -->
+                        <tr>
+                            <td style="border-right: 1px solid black; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px;">Discount %</td>
+                            <td style="border-right: 1px solid black; text-align: center; padding: 5px;">0%</td>
+                            <td style="border-right: 1px solid black; text-align: center; padding: 5px;">3%</td>
+                            <td style="border-right: 1px solid black; text-align: center; padding: 5px;">6%</td>
+                            <td style="border-right: 1px solid black; text-align: center; padding: 5px;">9%</td>
+                            <td style="border-right: 1px solid black; text-align: center; padding: 5px;">12%</td>
+                            <td style="border-right: 1px solid black; text-align: center; padding: 5px;">14%</td>
+                            <td style="text-align: center; padding: 5px;">17%</td>
+                        </tr>
+                        <!-- Additional discount note -->
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 5px; font-weight: bold; border-top: 1px solid black;">
+                                5% additional discount is valid in case of 100% prepayment.
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Main Products Table -->
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 10px;">
+                        <!-- Main header row -->
+                        <tr>
+                            <td style="width: 4%; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;">Qty.</td>
+                            <td style="width: 20%; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;">Description</td>
+                            <td style="width: 8%; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;">Unit Price</td>
+                            <td style="width: 6%; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;">Discount (%)</td>
+                            <td style="width: 10%; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;">Unit Price after Discount</td>
+                            <td style="width: 8%; background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;">Amount</td>
+                            
+                            <!-- Multi-Games G-series header -->
+                            <td t-if="unique_multigame_products" style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 3px; border: 1px solid black;" t-att-colspan="len(unique_multigame_products)">Multi-Games G-series</td>
+                        </tr>
+                        
+                        <!-- Multi-Games game name columns -->
+                        <tr>
+                            <td style="border: 1px solid black;"></td>
+                            <td style="border: 1px solid black;"></td>
+                            <td style="border: 1px solid black;"></td>
+                            <td style="border: 1px solid black;"></td>
+                            <td style="border: 1px solid black;"></td>
+                            <td style="border: 1px solid black;"></td>
+                            
+                            <!-- Game columns -->
+                            <t t-foreach="unique_multigame_products" t-as="game">
+                                <td style="border: 1px solid black; text-align: center; font-size: 7pt;">
+                                    <t t-esc="game"/>
+                                </td>
+                            </t>
+                        </tr>
+                        
+                        <!-- Product rows -->
+                        <t t-foreach="doc.order_line" t-as="line">
+                            <t t-if="line.product_id.categ_id.name != 'Multi-Games G-series'">
+                                <tr>
+                                    <td style="border: 1px solid black; text-align: center;">
+                                        <t t-esc="int(line.product_uom_qty)"/>
+                                    </td>
+                                    <td style="border: 1px solid black;">
+                                        <t t-esc="line.product_template_id.name"/>
+                                    </td>
+                                    <td style="border: 1px solid black; text-align: right;">
+                                        <t t-esc="'{:.2f}'.format(line.price_unit)"/>
+                                    </td>
+                                    <td style="border: 1px solid black; text-align: center;">
+                                        <t t-if="line.discount > 0">
+                                            <t t-esc="'{:.0f}%'.format(line.discount)"/>
+                                        </t>
+                                        <t t-else="">0%</t>
+                                    </td>
+                                    <td style="border: 1px solid black; text-align: right;">
+                                        <t t-esc="'{:.2f}'.format(line.price_unit * (1 - line.discount/100))"/>
+                                    </td>
+                                    <td style="border: 1px solid black; text-align: right;">
+                                        <t t-esc="'{:.2f}'.format(line.price_subtotal)"/>
+                                    </td>
+                                    
+                                    <!-- Empty cells for game columns -->
+                                    <t t-foreach="unique_multigame_products" t-as="game">
+                                        <td style="border: 1px solid black; text-align: center;"></td>
+                                    </t>
+                                </tr>
+                            </t>
+                        </t>
+                        
+                        <!-- MultiGames quantities row -->
+                        <tr t-if="unique_multigame_products">
+                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                            <td style="border: 1px solid #D20000; padding: 5px;"></td>
+                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                            <td style="border: 1px solid #D20000; text-align: center; padding: 5px;"></td>
+                            
+                            <!-- Dynamic multigame quantities cells -->
+                            <t t-foreach="unique_multigame_products" t-as="game">
+                                <td style="border: 1px solid #D20000; text-align: center; padding: 5px;">
+                                    <t t-set="product_qty" t-value="0"/>
+                                    <t t-foreach="doc.order_line" t-as="line">
+                                        <t t-if="line.product_template_id.name == game and line.product_id.categ_id.name == 'Multi-Games G-series'">
+                                            <t t-set="product_qty" t-value="product_qty + line.product_uom_qty"/>
+                                        </t>
+                                    </t>
+                                    <t t-if="product_qty > 0">
+                                        <t t-esc="int(product_qty)"/>
+                                    </t>
+                                </td>
+                            </t>
+                        </tr>
+                    </table>
+                    
+                    <!-- Totals Section -->
+                    <div style="margin: 20px 0;">
+                        <table style="width: 40%; margin-left: auto; border-collapse: collapse;">
+                            <tr>
+                                <td style="text-align: right; padding: 3px; width: 50%;">Subtotal</td>
+                                <td style="border: 1px solid #000; text-align: right; padding: 3px; width: 50%;">
+                                    <t t-esc="'{:,.2f}'.format(doc.amount_untaxed)"/> EUR
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding: 3px;">Freight &amp; Insurance</td>
+                                <td style="border: 1px solid #000; text-align: right; padding: 3px;">-</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding: 3px;">VAT %</td>
+                                <td style="border: 1px solid #000; text-align: right; padding: 3px;">
+                                    <t t-if="doc.amount_tax">
+                                        <t t-esc="'{:,.2f}'.format(doc.amount_tax)"/> EUR
+                                    </t>
+                                    <t t-else="">0.00</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; font-weight: bold; padding: 3px;">TOTAL:</td>
+                                <td style="border: 1px solid #000; text-align: right; padding: 3px; font-weight: bold;">
+                                    <t t-esc="'{:,.2f}'.format(doc.amount_total)"/> EUR
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- General Terms Section -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="background-color: #D20000; color: white; font-weight: bold; padding: 3px; margin-bottom: 5px;">
+                            General Terms of Sale:
+                        </div>
+                        
+                        <div style="border: 1px solid #D20000; padding: 10px;">
+                            <p style="margin-bottom: 10px;">
+                                <span style="font-weight: bold;">Terms of Payment:</span><br/>
+                                * 100% (……… EUR) should be paid in advance within 3 days after signing the Sale Agreement.
+                            </p>
+                            
+                            <p style="margin-bottom: 10px;">
+                                * 40% (....... EUR) should be paid in advance within 3 days after signing the Sale Agreement;<br/>
+                                * Residual Balance of .......00 EUR should be paid in 6 equal monthly installments. Amount of each monthly payment is ...........00 EUR. The first payment is due not later than 05th of the month, following the receipt of the Goods.
+                            </p>
+                            
+                            <p style="margin-bottom: 10px;">
+                                <span style="font-weight: bold;">Terms of Delivery:</span><br/>
+                                EXW Sofia, Bulgaria - Manufacturer's Factory within 18-20 weeks from receipt of down payment.
+                            </p>
+                            
+                            <p style="margin-bottom: 10px;">
+                                Transport can be arranged upon request of the customer and will be invoiced separately.
+                            </p>
+                            
+                            <p style="margin-bottom: 10px;">
+                                <span style="font-weight: bold;">Installation:</span><br/>
+                                Installed by EGT technicians on location. Airfare &amp; accommodation costs should be ensured by the Buyer.
+                            </p>
+                            
+                            <p style="margin-bottom: 10px;">
+                                <span style="font-weight: bold;">Warranty:</span><br/>
+                                12 months warranty from date of receipt/transport of the Goods.
+                            </p>
+                            
+                            <p style="margin-bottom: 0;">
+                                <span style="font-weight: bold;">Note:</span><br/>
+                                EGT remains owner until full payment is received
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirmation Text -->
+                    <div style="text-align: center; margin: 20px 0; font-style: italic;">
+                        Please confirm your acceptance of this quote by signing this document
+                    </div>
+                    
+                    <!-- Signature Fields -->
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr>
+                            <td style="width: 25%; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
+                                Signature
+                            </td>
+                            <td style="width: 50%; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
+                                Name &amp; Position
+                            </td>
+                            <td style="width: 25%; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
+                                Date
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Thank You Message -->
+                    <div style="text-align: center; margin: 40px 0; font-style: italic;">
+                        Thank you for your business!
+                    </div>
+                    
+                    <!-- Product Images in Footer -->
+                    <div style="margin-top: 30px; page-break-inside: avoid;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <!-- First row of images -->
+                            <tr>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 55 J1 VIP with VIP Chair</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_55_J1_VIP.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 55 C VIP with VIP Chair</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_55_C_VIP.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 32-32 VIP with LCD Topper 32" &amp; VIP Chair</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_32_32_VIP.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                            </tr>
+                            <!-- Second row of images -->
+                            <tr>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50V ST with LCD Topper 27"</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_V_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50 J1 UP with LCD Topper 27" &amp; Slot Base</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_J1_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50 J1 ST with LCD Topper 27"</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_J1_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                            </tr>
+                             <!-- Third row of images -->
+                            <tr>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50 J2 UP with LCD Topper 27" &amp; Slot Base</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_J2_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50 J2 ST with LCD Topper 27"</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_J2_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50 C UP with LCD Topper 27" &amp; Slot Base</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_C_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                            </tr>
+                            <!-- Fourth row of images -->
+                            <tr>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 50 C ST with LCD Topper 27"</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_50_C_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 27-32 UP with LCD Topper 32" &amp; Slot Base</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_27_32_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 27-32 ST with LCD Topper 32"</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_27_32_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                            </tr>
+                            <!-- Fifth row of images -->
+                            <tr>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 27-27 UP with LCD Topper 27" &amp; Slot Base</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_27_27_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;">
+                                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">G 27-27 ST with LCD Topper 27"</div>
+                                    <img t-att-src="'/egt_report/static/src/img/G_27_27_ST.jpg'" style="max-width: 150px; height: auto;"/>
+                                </td>
+                                <td style="width: 33%; text-align: center; padding: 10px; vertical-align: top;"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

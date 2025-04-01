@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_egt_order" model="report.paperformat">
+        <field name="name">EGT Order Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_quotation_rent_ge_gm" model="ir.actions.report">
+        <field name="name">EGT Rent GE GM</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">egt_report.report_order</field>
+        <field name="report_file">egt_report.report_order</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="egt_report.paperformat_egt_order"/>
+    </record>
+
+    <template id="report_order">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <meta charset="utf-8"/>
+                    <div class="page" style="padding: 0; margin: 0; font-family: Arial, sans-serif; font-size: 10pt;">
+                        <!-- Red header bar -->
+                        <div style="width: 100%; height: 15px; background-color: #D20000; margin-bottom: 5px;"></div>
+                        
+                        <!-- Header section with logo and company name -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1px solid white;">
+                            <tr>
+                                <td style="width: 50%; text-align: left; vertical-align: middle; padding: 0; border: 1px solid white;">
+                                    <div style="color: #D20000; font-style: italic; font-weight: bold; font-size: 12pt;">
+                                        Euro Games Technology Georgia Ltd.
+                                    </div>
+                                </td>
+                                <td style="width: 50%; text-align: right; vertical-align: top; padding: 0; border: 1px solid white;">
+                                    <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)" style="width: 80px; height: auto; border: none;" />
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Order/Quotation Title -->
+                        <div style="text-align: right; margin-bottom: 20px;">
+                            <div style="color: #D20000; font-weight: bold; font-size: 14pt;">
+                                QUOTATION RENT
+                            </div>
+                        </div>
+
+                        <!-- Date fields -->
+                        <div style="text-align: right; margin-bottom: 10px;">
+                            <table style="margin-left: auto; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 3px 5px; text-align: right;">Date</td>
+                                    <td style="padding: 3px 5px; text-align: right;">
+                                        <t t-if="doc.date_order">
+                                            <t t-esc="doc.date_order.strftime('%B %d, %Y')"/>
+                                        </t>
+                                        <t t-else="">March 28, 2025</t>
+                                    </td>
+                                </tr>
+                                <tr t-if="doc.validity_date">
+                                    <td style="padding: 3px 5px; text-align: right;">Valid Until</td>
+                                    <td style="padding: 3px 5px; text-align: right;">
+                                        <t t-esc="doc.validity_date"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 5px; text-align: right;">Currency</td>
+                                    <td style="padding: 3px 5px; text-align: right;">
+                                        <t t-esc="doc.currency_id.name or 'EUR'"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Customer Info Table -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <tr>
+                                <td colspan="2" style="background-color: #D20000; color: white; font-weight: bold; padding: 3px 10px; border: 1px solid #D20000;">Customer:</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 35%; padding: 5px; border: 1px solid #000;">Gaming Organizer:</td>
+                                <td style="width: 65%; padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.partner_id.name"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #000;">Location:</td>
+                                <td style="padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.partner_id.city + ', ' + doc.partner_id.country_id.name if doc.partner_id.city and doc.partner_id.country_id else ''"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #000;">Company:</td>
+                                <td style="padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.partner_id.parent_id.name or ''"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #000;">Contact person:</td>
+                                <td style="padding: 5px; border: 1px solid #000;">
+                                    <t t-esc="doc.user_id.name or ''"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Prepare MultiGames data - UPDATED CATEGORY NAME -->
+                        <t t-set="multigame_products" t-value="[]"/>
+                        <t t-set="multigames_amount" t-value="0"/>
+                        <t t-foreach="doc.order_line" t-as="line">
+                            <t t-if="line.product_id.categ_id.name == 'General Series Multigames'">
+                                <t t-set="multigame_products" t-value="multigame_products + [line.product_template_id.name]"/>
+                                <t t-set="multigames_amount" t-value="multigames_amount + line.price_subtotal"/>
+                            </t>
+                        </t>
+                        <t t-set="unique_multigame_products" t-value="set(multigame_products)"/>
+
+                        <!-- Products Table with pricing -->
+                        <div style="margin-bottom: 20px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <!-- Table Header -->
+                                <tr>
+                                    <td style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #fff; width: 5%;">Qty.</td>
+                                    <td style="background-color: #D20000; color: white; font-weight: bold; padding: 5px; border: 1px solid #fff; width: 25%;">Description</td>
+                                    <td style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #fff; width: 15%;">Monthly Rent + VAT</td>
+                                    <td style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #fff; width: 15%;">Monthly Total Amount</td>
+                                    
+                                    <!-- General Series Multigames spanning header -->
+                                    <t t-if="len(unique_multigame_products) > 0">
+                                        <td colspan="7" style="background-color: #D20000; color: white; font-weight: bold; text-align: center; padding: 5px; border: 1px solid #fff; width: 40%;">General Series Multigames</td>
+                                    </t>
+                                </tr>
+                                
+                                <!-- Multigame Column Headers -->
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    
+                                    <!-- Create columns for each unique multigame product -->
+                                    <t t-foreach="unique_multigame_products" t-as="product">
+                                        <td style="border: 1px solid #D20000; text-align: center; padding: 3px; font-size: 9pt;">
+                                            <t t-esc="product"/>
+                                        </td>
+                                    </t>
+                                </tr>
+                                
+                                <!-- Initialize total amount -->
+                                <t t-set="total_amount" t-value="0"/>
+                                
+                                <!-- Check if there are order lines - UPDATED CATEGORY NAME -->
+                                <t t-if="doc.order_line and any(line.product_id.categ_id.name != 'General Series Multigames' for line in doc.order_line)">
+                                    <!-- Product Lines - Only Non-MultiGames rows - UPDATED CATEGORY NAME -->
+                                    <t t-foreach="doc.order_line" t-as="line">
+                                        <t t-if="line.product_id.categ_id.name != 'General Series Multigames'">
+                                            <tr>
+                                                <!-- Product quantity -->
+                                                <td style="border: 1px solid #D20000; text-align: center; padding: 3px;">
+                                                    <t t-esc="int(line.product_uom_qty)"/>
+                                                </td>
+                                                
+                                                <!-- Description (product_template_id) -->
+                                                <td style="border: 1px solid #D20000; padding: 3px;">
+                                                    <t t-esc="line.product_template_id.name"/>
+                                                </td>
+                                                
+                                                <!-- Monthly Rent + VAT -->
+                                                <td style="border: 1px solid #D20000; text-align: right; padding: 3px;">
+                                                    <t t-esc="'{:.2f}'.format(line.price_unit)"/>
+                                                </td>
+                                                
+                                                <!-- Monthly Total Amount (price_subtotal) -->
+                                                <td style="border: 1px solid #D20000; text-align: right; padding: 3px;">
+                                                    <t t-esc="'{:.2f}'.format(line.price_subtotal)"/>
+                                                    <t t-set="total_amount" t-value="total_amount + line.price_subtotal"/>
+                                                </td>
+                                                
+                                                <!-- Empty cells for MultiGames columns -->
+                                                <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                                    <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                                </t>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <!-- Placeholder for cabinets -->
+                                    <t t-foreach="range(1, 13)" t-as="i">
+                                        <tr>
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                            <td style="border: 1px solid #D20000; padding: 3px;">CABINETS:</td>
+                                            <td style="border: 1px solid #D20000; text-align: right; padding: 3px;">0.00</td>
+                                            <td style="border: 1px solid #D20000; text-align: right; padding: 3px;">-</td>
+                                            
+                                            <!-- Empty cells for MultiGames columns -->
+                                            <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                                <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                    
+                                    <!-- PTM Bracket -->
+                                    <tr>
+                                        <td style="border: 1px solid #D20000; text-align: center; padding: 3px;">40</td>
+                                        <td style="border: 1px solid #D20000; padding: 3px;">PTM bracket</td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        
+                                        <!-- Empty cells for MultiGames columns -->
+                                        <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                        </t>
+                                    </tr>
+                                    
+                                    <!-- Ticket Printer -->
+                                    <tr>
+                                        <td style="border: 1px solid #D20000; text-align: center; padding: 3px;">40</td>
+                                        <td style="border: 1px solid #D20000; padding: 3px;">Ticket Printer</td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        
+                                        <!-- Empty cells for MultiGames columns -->
+                                        <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                        </t>
+                                    </tr>
+                                    
+                                    <!-- Multi-Level Jackpot Server -->
+                                    <tr>
+                                        <td style="border: 1px solid #D20000; text-align: center; padding: 3px;">1</td>
+                                        <td style="border: 1px solid #D20000; padding: 3px;">Multi-Level Jackpot Server - PREMIUM LINK</td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        
+                                        <!-- Empty cells for MultiGames columns -->
+                                        <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                            <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                        </t>
+                                    </tr>
+                                </t>
+                                
+                                <!-- Create a row just for MultiGames quantities - UPDATED CATEGORY NAME -->
+                                <t t-if="len(unique_multigame_products) > 0">
+                                    <tr>
+                                        <td style="border: 1px solid #D20000; text-align: center; padding: 3px;"></td>
+                                        <td style="border: 1px solid #D20000; padding: 3px;"></td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        <td style="border: 1px solid #D20000; text-align: right; padding: 3px;"></td>
+                                        
+                                        <!-- MultiGames quantities - UPDATED CATEGORY NAME -->
+                                        <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                            <td style="border: 1px solid #D20000; padding: 3px; text-align: center;">
+                                                <t t-set="product_qty" t-value="0"/>
+                                                <t t-foreach="doc.order_line" t-as="line">
+                                                    <t t-if="line.product_template_id.name == mg_product and line.product_id.categ_id.name == 'General Series Multigames'">
+                                                        <t t-set="product_qty" t-value="product_qty + line.product_uom_qty"/>
+                                                    </t>
+                                                </t>
+                                                <t t-esc="int(product_qty)"/>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+                                
+                            <!-- Total row with dynamic currency -->
+                            <tr>
+                                <td style="height: 30px;"></td>
+                                <td colspan="2" style="text-align: right; font-weight: bold; padding: 5px;">TOTAL:</td>
+                                <td style="border: 1px solid #D20000; text-align: right; padding: 3px;">
+                                    <t t-if="doc.amount_total > 0">
+                                        <t t-esc="'{:.2f}'.format(doc.amount_total)"/>
+                                        <t t-if="doc.currency_id.symbol">
+                                            <span t-esc="doc.currency_id.symbol"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="doc.currency_id.name"/>
+                                        </t>
+                                    </t>
+                                    <t t-else="">-</t>
+                                </td>
+                                
+                                <!-- Empty cells for the total row in multigames columns -->
+                                <t t-foreach="unique_multigame_products" t-as="mg_product">
+                                    <td style="padding: 3px;"></td>
+                                </t>
+                            </tr>
+                            </table>
+                        </div>
+
+                        <!-- General Terms Section -->
+                        <div style="margin-bottom: 20px;">
+                            <!-- General Terms Header -->
+                            <div style="background-color: #D20000; color: white; font-weight: bold; padding: 3px 10px; margin-bottom: 5px;">General Terms:</div>
+                            
+                            <!-- Payment Section -->
+                            <div style="background-color: #D20000; color: white; font-weight: bold; padding: 3px 10px; margin-bottom: 5px;">Payment:</div>
+                            <div style="padding: 3px 10px; margin-bottom: 5px;">
+                                * 2 month rental amount (42,720.00 EUR) have to be paid in advance for initiation of the Order;<br/>
+                                * Advance payment of 42,720.00 ЕUR will be deducted as a rent, counting from date of installation;<br/>
+                                * The payment of rent is due in advance, not later than 05th of each accounting month.<br/>
+                                * The payment of rent is due not later than 05th of the month, following each accounting month.
+                            </div>
+                            
+                            <!-- Delivery Terms Section -->
+                            <div style="background-color: #D20000; color: white; font-weight: bold; padding: 3px 10px; margin-bottom: 5px;">Delivery Terms:</div>
+                            <div style="padding: 3px 10px; margin-bottom: 5px;">
+                                Delivery to EGT Georgia Warehouse in Tbilisi/Batumi within 12-18 weeks from receipt of down payment / Order's confirmation
+                            </div>
+                            
+                            <!-- Installation Section -->
+                            <div style="padding: 3px 10px; margin-bottom: 20px;">
+                                Installation: Installed by EGT technicians on location
+                            </div>
+                        </div>
+                        
+                        <!-- Signature Section -->
+                        <div style="margin: 40px 0; text-align: center; font-style: italic;">
+                            Please confirm your acceptance of this quote by signing this document
+                        </div>
+                        
+                        <table style="width: 100%; margin-top: 30px; margin-bottom: 40px;">
+                            <tr>
+                                <td style="width: 25%; text-align: center; vertical-align: bottom; border-top: 1px solid black; padding-top: 5px;">Signature</td>
+                                <td style="width: 50%; text-align: center; vertical-align: bottom; border-top: 1px solid black; padding-top: 5px;">Name &amp; Position</td>
+                                <td style="width: 25%; text-align: center; vertical-align: bottom; border-top: 1px solid black; padding-top: 5px;">Date</td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Thank You Message -->
+                        <div style="margin: 40px 0; text-align: center; font-style: italic;">
+                            Thank you for your business!
+                        </div>
+                        
+      <!-- Product Images in Footer -->
+<div style="margin-top: 30px; page-break-inside: avoid;">
+    <!-- Create a grid of product images - 4 per row -->
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <!-- First row of images -->
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 55 J1 VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture1.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 55 C VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture2.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 32-32 VIP with LCD Topper 32"</div>
+                <img src="/egt_report/static/src/img/Picture3.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 32-32 VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture4.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+        </tr>
+        <tr>
+            <!-- Second row of images -->
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 50 V ST with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture5.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 50-50 C VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture6.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 50 J1 ST with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture7.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 50 J1 VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture8.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+        </tr>
+        <tr>
+            <!-- Third row of images -->
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 50 J2 ST with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture9.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 50 C ST with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture10.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 27-32 ST with LCD Topper 32"</div>
+                <img src="/egt_report/static/src/img/Picture11.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 27-32 VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture12.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+        </tr>
+        <tr>
+            <!-- Fourth row of images -->
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 27-27 ST with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture13.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">G 27-27 VIP with VIP Chair</div>
+                <img src="/egt_report/static/src/img/Picture14.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">P-42V UP Curved with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture15.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">P-42V Curved with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture16.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+        </tr>
+        <tr>
+            <!-- Fifth row of images -->
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">P-27/27 ST UP with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture17.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">P-27/27 ST with LCD Topper 27"</div>
+                <img src="/egt_report/static/src/img/Picture18.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">P-24/24 UP with LCD Topper 24"</div>
+                <img src="/egt_report/static/src/img/Picture19.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+            <td style="width: 25%; text-align: center; padding: 10px; vertical-align: top;">
+                <div style="text-align: center; color: blue; font-weight: bold; margin-bottom: 5px;">P-24/24 with LCD Topper 24"</div>
+                <img src="/egt_report/static/src/img/Picture20.jpg" style="max-width: 150px; height: auto;"/>
+            </td>
+        </tr>
+    </table>
+</div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
