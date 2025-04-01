@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
 
@@ -349,3 +349,72 @@ class AccountPayment(models.Model):
                     self.date or fields.Date.context_today(self),
                 )
                 self.amount = amount
+
+
+class AccountPayment(models.Model):
+    _inherit = 'account.payment'
+    
+    def action_change_credit_account(self):
+        """
+        Button action to change account.move.line entries with credit 1410 to account 3120
+        for this payment and its linked journal entries. Works on posted entries as well.
+        """
+        self.ensure_one()
+        modified_count = 0
+        
+        # Find all linked journal entries
+        linked_moves = self.env['account.move']
+        
+        # Add the payment's move
+        if self.move_id:
+            linked_moves |= self.move_id
+        
+        # Add reconciled moves (invoices, bills, etc. that this payment reconciles with)
+        for line in self.move_id.line_ids:
+            if line.full_reconcile_id:
+                for reconciled_line in line.full_reconcile_id.reconciled_line_ids:
+                    if reconciled_line.move_id and reconciled_line.move_id != self.move_id:
+                        linked_moves |= reconciled_line.move_id
+        
+        # Get the target account
+        target_account = self.env['account.account'].search([
+            ('code', '=', '3120')
+        ], limit=1)
+        
+        if not target_account:
+            raise UserError(_("Account with code 3120 not found for this company!"))
+        
+        # Update all the moves
+        posted_moves = self.env['account.move']
+        
+        for move in linked_moves:
+            # Find all move lines with account_id 1410
+            lines_to_change = move.line_ids.filtered(
+                lambda line: line.account_id.code == '1410'
+            )
+            
+            # Check if the move is posted
+            if move.state == 'posted':
+                posted_moves |= move
+                # Unpost the move to make changes
+                move.button_draft()
+            
+            # Update the lines
+            for line in lines_to_change:
+                line.account_id = target_account.id
+                modified_count += 1
+                
+            # Re-post the move if it was posted
+            if move in posted_moves:
+                move.action_post()
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _("Account Change"),
+                'message': _(f"{modified_count} line(s) with account 1410 changed to account 3120 across {len(linked_moves)} journal entries."),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
